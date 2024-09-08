@@ -27,21 +27,30 @@ jobs:
           cp -r ESP32_GENERIC_S3_N16R8 lv_micropython/ports/esp32/boards/
         
       - name: Install packages
-        run: cd lv_micropython && source tools/ci.sh && ci_esp32_idf44_setup
-
-      - name: Set Up ESP-IDF Environment
         run: |
           cd lv_micropython
           source tools/ci.sh
-          source $IDF_PATH/export.sh
+          ci_esp32_idf44_setup
+
+      - name: Check IDF_PATH and Export Environment
+        run: |
+          cd lv_micropython
+          source tools/ci.sh
+          echo "IDF_PATH is set to: $IDF_PATH"  # Verifica el valor de IDF_PATH
+          if [ -f "$IDF_PATH/export.sh" ]; then
+            source $IDF_PATH/export.sh
+            echo "Exported ESP-IDF environment."
+          else
+            echo "Error: $IDF_PATH/export.sh does not exist."
+            exit 1
+          fi
           echo "PATH=$PATH"  # Verifica que el PATH incluya el directorio de idf.py
 
       - name: Build for Custom Board
         run: |
           cd lv_micropython
           source tools/ci.sh
-          make ${MAKEOPTS} -C ports/esp32 BOARD=ESP32_GENERIC_S3_N16R8
-        
+          make ${MAKEOPTS} -C ports/esp32 BOARD=ESP32_GENERIC_S3_N16R8        
       #- name: Build
        # run: cd lv_micropython && source tools/ci.sh && ci_esp32_build
 
