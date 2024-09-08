@@ -31,6 +31,16 @@ jobs:
        cd lv_micropython
        git submodule update --init --recursive lib/lv_bindings
        cd
+    
+    - name: Reemplazar esp_adc_cal en CMakeLists.txt
+      run: |
+       sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/main/CMakeLists.txt
+
+    - name: Reemplazar esp_adc_cal por esp_adc
+      run: |
+        sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/*.c
+        sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/*.h
+        sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/main/CMakeLists.txt
 
     - name: Clonar s3lcd
       run: git clone https://github.com/russhughes/s3lcd.git
