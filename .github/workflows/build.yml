@@ -41,12 +41,6 @@ jobs:
         sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/*.c
         sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/*.h
         sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/main/CMakeLists.txt
-
-    - name: Add mdns dependency
-      run: |
-        cd lv_micropython
-        idf.py add-dependency mdns
-        cd
         
    # - name: Clonar s3lcd
     #  run: git clone https://github.com/russhughes/s3lcd.git
@@ -70,7 +64,13 @@ jobs:
     - name: Copiar configuracion
       run: |
         cp -r ESP32_GENERIC_S3_N16R8 lv_micropython/ports/esp32/boards/
-  
+
+    - name: Add mdns dependency
+      run: |
+        cd lv_micropython
+        idf.py add-dependency mdns
+        cd
+        
     - name: Compilar
       run: |
         source esp/esp-idf/export.sh
