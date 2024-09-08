@@ -29,6 +29,9 @@ jobs:
       - name: Install packages
         run: cd lv_micropython && source tools/ci.sh && ci_esp32_idf44_setup
 
+      - name: Set Board Target
+        run: cd lv_micropython && idf.py set-target ESP32_GENERIC_S3_N16R8
+        
       - name: Build
         run: cd lv_micropython && source tools/ci.sh && ci_esp32_build
 
