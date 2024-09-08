@@ -42,18 +42,14 @@ jobs:
         sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/*.h
         sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/main/CMakeLists.txt
 
-    - name: Install Python dependencies
-      run: |
-        pip install -r lv_micropython/requirements.txt
-
     - name: Add mdns dependency
       run: |
         cd lv_micropython
         idf.py add-dependency mdns
         cd
         
-    - name: Clonar s3lcd
-      run: git clone https://github.com/russhughes/s3lcd.git
+   # - name: Clonar s3lcd
+    #  run: git clone https://github.com/russhughes/s3lcd.git
           
     - name: Instalar dependencias
       run: |
@@ -85,9 +81,10 @@ jobs:
         idf.py -D LV_CFLAGS="-DLV_COLOR_DEPTH=16" \
                -D MICROPY_BOARD=ESP32_GENERIC_S3_N16R8 \
                -D MICROPY_BOARD_DIR="$GITHUB_WORKSPACE/lv_micropython/ports/esp32/boards/ESP32_GENERIC_S3_N16R8" \
-               -D USER_C_MODULES="$GITHUB_WORKSPACE/s3lcd/src/micropython.cmake" \
-               -D MICROPY_FROZEN_MANIFEST="$GITHUB_WORKSPACE/s3lcd/manifest.py" \
                -B build-ESP32_GENERIC_S3_N16R8 build
+  #-D USER_C_MODULES="$GITHUB_WORKSPACE/s3lcd/src/micropython.cmake" \
+  #-D MICROPY_FROZEN_MANIFEST="$GITHUB_WORKSPACE/s3lcd/manifest.py" \
+  # -B build-ESP32_GENERIC_S3_N16R8 build             
 
     
     - name: Mover binarios
