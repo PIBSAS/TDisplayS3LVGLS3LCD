@@ -1,4 +1,4 @@
-name: T-Display-S3
+name: T-Display-S3 with LVGL and S3LCD
 
 permissions:
   contents: write
@@ -25,8 +25,11 @@ jobs:
     - name: Clonar el repositorio
       uses: actions/checkout@v3
       
-    - name: Clonar Micropython
-      run: git clone --recurse-submodules https://github.com/micropython/micropython.git
+    - name: Clonar LVGL Micropython
+      run: git clone https://github.com/lvgl/lv_micropython.git
+           cd lv_micropython
+           git submodule update --init --recursive lib/lv_bindings
+           cd
 
     - name: Clonar s3lcd
       run: git clone https://github.com/russhughes/s3lcd.git
@@ -50,17 +53,18 @@ jobs:
 
     - name: Copiar configuracion
       run: |
-        cp -r ESP32_GENERIC_S3_N16R8 micropython/ports/esp32/boards/
+        cp -r ESP32_GENERIC_S3_N16R8 lv_micropython/ports/esp32/boards/
 
     - name: Compilar
       run: |
         source esp/esp-idf/export.sh
-        cd micropython/
+        cd lv_micropython/
         make -C mpy-cross
         export IDF_TARGET=esp32s3
         cd ports/esp32/
-        idf.py -D MICROPY_BOARD=ESP32_GENERIC_S3_N16R8 \
-               -D MICROPY_BOARD_DIR="$GITHUB_WORKSPACE/micropython/ports/esp32/boards/ESP32_GENERIC_S3_N16R8" \
+        idf.py -D LV_CFLAGS="-DLV_COLOR_DEPTH=16" \
+               -D MICROPY_BOARD=ESP32_GENERIC_S3_N16R8 \
+               -D MICROPY_BOARD_DIR="$GITHUB_WORKSPACE/lv_micropython/ports/esp32/boards/ESP32_GENERIC_S3_N16R8" \
                -D USER_C_MODULES="$GITHUB_WORKSPACE/s3lcd/src/micropython.cmake" \
                -D MICROPY_FROZEN_MANIFEST="$GITHUB_WORKSPACE/s3lcd/manifest.py" \
                -B build-ESP32_GENERIC_S3_N16R8 build
@@ -69,9 +73,9 @@ jobs:
     - name: Mover binarios
       run: |
         mkdir -p ./artifacts
-        cp micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/micropython.bin ./artifacts/
-        cp micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/bootloader/bootloader.bin ./artifacts/
-        cp micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/partition_table/partition-table.bin ./artifacts/
+        cp lv_micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/micropython.bin ./artifacts/
+        cp lv_micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/bootloader/bootloader.bin ./artifacts/
+        cp lv_micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/partition_table/partition-table.bin ./artifacts/
 
     - name: Generate Tag
       id: tag
