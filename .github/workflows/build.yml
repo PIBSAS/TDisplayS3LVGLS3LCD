@@ -64,17 +64,12 @@ jobs:
     - name: Copiar configuracion
       run: |
         cp -r ESP32_GENERIC_S3_N16R8 lv_micropython/ports/esp32/boards/
-
-    - name: Add mdns dependency
-      run: |
-        cd lv_micropython
-        idf.py add-dependency mdns
-        cd
-        
+     
     - name: Compilar
       run: |
         source esp/esp-idf/export.sh
         cd lv_micropython/
+        idf.py add-dependency mdns
         make -C mpy-cross
         export IDF_TARGET=esp32s3
         cd ports/esp32/
