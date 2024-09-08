@@ -42,37 +42,6 @@ jobs:
         sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/*.h
         sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/main/CMakeLists.txt
 
-    - name: Clonar s3lcd
-      run: git clone https://github.com/russhughes/s3lcd.git
-          
-    - name: Instalar dependencias
-      run: |
-       sudo apt-get update
-       sudo apt-get install -y build-essential git wget flex bison gperf pkg-config python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
-
-    #- name: Clonar ESP-IDF
-    #  run: |
-    #    mkdir -p esp
-    #    cd esp
-    #    git clone -b v5.2.2 --recursive https://github.com/espressif/esp-idf.git
-    #    cd esp-idf/tools
-    #    python3 idf_tools.py install cmake
-    #    cd ..
-    #    ./install.sh esp32s3
-    #    cd
-# Reemplazado por:
-    - name: ESP-IDF build
-      uses: espressif/esp-idf-ci-action@v1
-      with:
-        esp_idf_version: v5.2.2               # Versión de ESP-IDF que desees utilizar
-        target: esp32s3                       # Tipo de ESP32
-        path: 'lv_micropython/ports/esp32'   # Ruta al proyecto relativo a la raíz del repositorio
-
-
-    - name: Copiar configuracion
-      run: |
-        cp -r ESP32_GENERIC_S3_N16R8 lv_micropython/ports/esp32/boards/
-
     - name: Install Python dependencies
       run: |
         pip install -r lv_micropython/requirements.txt
@@ -81,7 +50,31 @@ jobs:
       run: |
         cd lv_micropython
         idf.py add-dependency mdns
-      
+        cd
+        
+    - name: Clonar s3lcd
+      run: git clone https://github.com/russhughes/s3lcd.git
+          
+    - name: Instalar dependencias
+      run: |
+       sudo apt-get update
+       sudo apt-get install -y build-essential git wget flex bison gperf pkg-config python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
+
+    - name: Clonar ESP-IDF
+      run: |
+        mkdir -p esp
+        cd esp
+        git clone -b v5.2.2 --recursive https://github.com/espressif/esp-idf.git
+        cd esp-idf/tools
+        python3 idf_tools.py install cmake
+        cd ..
+        ./install.sh esp32s3
+        cd
+
+    - name: Copiar configuracion
+      run: |
+        cp -r ESP32_GENERIC_S3_N16R8 lv_micropython/ports/esp32/boards/
+  
     - name: Compilar
       run: |
         source esp/esp-idf/export.sh
