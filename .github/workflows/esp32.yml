@@ -3,15 +3,6 @@ name: esp32 port
 on:
   push:
   pull_request:
-    paths:
-      - '.github/workflows/*.yml'
-      - 'tools/**'
-      - 'py/**'
-      - 'extmod/**'
-      - 'shared/**'
-      - 'lib/**'
-      - 'drivers/**'
-      - 'ports/esp32/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,8 +16,8 @@ jobs:
     - name: Clone lv_micropython repository
       run: git clone https://github.com/lvgl/lv_micropython.git
     - name: Initialize lv_bindings submodule
-      run: git submodule update --init --recursive lib/lv_bindings
+      run: cd lv_micropython && git submodule update --init --recursive lib/lv_bindings
     - name: Install packages
-      run: source tools/ci.sh && ci_esp32_idf44_setup
+      run: cd lv_micropython && source tools/ci.sh && ci_esp32_idf44_setup
     - name: Build
-      run: source tools/ci.sh && ci_esp32_build
+      run: cd lv_micropython && source tools/ci.sh && ci_esp32_build
