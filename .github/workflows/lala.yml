@@ -22,6 +22,13 @@ jobs:
       - name: Initialize lv_bindings submodule
         run: cd lv_micropython && git submodule update --init --recursive lib/lv_bindings
 
+      - name: Clonar el repositorio
+        uses: actions/checkout@v3
+        
+      - name: Copy Board Configuration
+        run: |
+          cp -r ESP32_GENERIC_S3_N16R8 lv_micropython/micropython/ports/esp32/boards/
+        
       - name: Install packages
         run: cd lv_micropython && source tools/ci.sh && ci_esp32_idf44_setup
 
