@@ -1,0 +1,84 @@
+name: T-Display-S3 with LVGL and S3LCD
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+     - 'v*'
+  schedule:
+     - cron: '0 0 * * 0'  # Se ejecutará a las 00:00 UTC cada domingo
+  
+  workflow_dispatch:  # Permite ejecutar manualmente el flujo de trabajo
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Clonar el repositorio
+      uses: actions/checkout@v3
+      
+    - name: Clonar LVGL Micropython
+      run: |
+       git clone https://github.com/lvgl/lv_micropython.git
+       cd lv_micropython
+       git submodule update --init --recursive lib/lv_bindings
+          
+    - name: Instalar dependencias
+      run: |
+       sudo apt-get update
+       sudo apt-get install -y build-essential git wget flex bison gperf pkg-config python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
+
+    - name: Clonar ESP-IDF
+      run: |
+        mkdir -p esp
+        cd esp
+        git clone -b v4.4 --recursive https://github.com/espressif/esp-idf.git
+        cd esp-idf/tools
+        python3 idf_tools.py install cmake
+        cd ..
+        ./install.sh esp32s3
+        cd
+
+    - name: Copiar configuracion
+      run: |
+        cp -r ESP32_GENERIC_S3_N16R8 lv_micropython/ports/esp32/boards/
+
+    - name: Configurar entorno de ESP-IDF
+      run: source esp/esp-idf/export.sh
+
+    - name: Configurar build de lv_micropython
+      run: |
+        cd lv_micropython/
+        make -C mpy-cross
+        export IDF_TARGET=esp32s3
+        cd ports/esp32/
+
+    - name: Compilar ESP32 con IDF
+      run: |
+        idf.py -D LV_CFLAGS="-DLV_COLOR_DEPTH=16" \
+               -D MICROPY_BOARD=ESP32_GENERIC_S3_N16R8 \
+               -D MICROPY_BOARD_DIR="ports/esp32/boards/ESP32_GENERIC_S3_N16R8" \
+               -B build-ESP32_GENERIC_S3_N16R8 build
+
+    - name: Mover binarios
+      run: |
+        mkdir -p ./artifacts
+        cp lv_micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/micropython.bin ./artifacts/
+        cp lv_micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/bootloader/bootloader.bin ./artifacts/
+        cp lv_micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/partition_table/partition-table.bin ./artifacts/
+
+    - name: Generate Tag
+      id: tag
+      run: echo "TAG_NAME=release-$(date +'%Y%m%d-%H%M')" >> $GITHUB_ENV
+
+    - name: Create Release
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
+        automatic_release_tag: ${{ env.TAG_NAME }}
+        title: "Release for version ${{ env.TAG_NAME }}"
+        files: ./artifacts/*
