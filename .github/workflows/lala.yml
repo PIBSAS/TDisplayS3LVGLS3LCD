@@ -1,7 +1,9 @@
-name: lala
+name: ESP32 Port
 
 on:
   push:
+    branches:
+      - main  # Cambia esto según tu rama principal
   pull_request:
 
 concurrency:
@@ -12,56 +14,41 @@ jobs:
   build_idf44:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Clone lv_micropython repository
-      run: git clone https://github.com/lvgl/lv_micropython.git
-    
-    - name: Initialize lv_bindings submodule
-      run: |
-        cd lv_micropython 
-        git submodule update --init --recursive lib/lv_bindings
-    
-    - name: Install packages
-      run: |
-        cd lv_micropython 
-        source tools/ci.sh 
-        ci_esp32_idf44_setup
-    
-    - name: Add custom board configuration (ESP32_GENERIC_S3_N16R8)
-      run: |
-        cp -r ESP32_GENERIC_S3_N16R8 lv_micropython/ports/esp32/boards/
-        ls lv_micropython/ports/esp32/boards/
-        echo $GITHUB_WORKSPACE
-    
-    - name: Build for ESP32_GENERIC_S3_N16R8
-      run: |
-        source esp/esp-idf/export.sh
-        cd lv_micropython/
-        make -C mpy-cross
-        export IDF_TARGET=esp32s3
-        cd ports/esp32/
-        idf.py -D LV_CFLAGS="-DLV_COLOR_DEPTH=16" \
-               -D MICROPY_BOARD=ESP32_GENERIC_S3_N16R8 \
-               -D MICROPY_BOARD_DIR="boards/ESP32_GENERIC_S3_N16R8" \
-               build
+      - uses: actions/checkout@v3
 
-    - name: Move binaries
-      run: |
-        mkdir -p ./artifacts
-        cp lv_micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/micropython.bin ./artifacts/
-        cp lv_micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/bootloader/bootloader.bin ./artifacts/
-        cp lv_micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/partition_table/partition-table.bin ./artifacts/
+      - name: Clone lv_micropython repository
+        run: git clone https://github.com/lvgl/lv_micropython.git
 
-    - name: Generate Tag
-      id: tag
-      run: echo "TAG_NAME=release-$(date +'%Y%m%d-%H%M')" >> $GITHUB_ENV
+      - name: Initialize lv_bindings submodule
+        run: cd lv_micropython && git submodule update --init --recursive lib/lv_bindings
 
-    - name: Create Release
-      uses: marvinpinto/action-automatic-releases@latest
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        prerelease: false
-        automatic_release_tag: ${{ env.TAG_NAME }}
-        title: "Release for version ${{ env.TAG_NAME }}"
-        files: ./artifacts/*
+      - name: Install packages
+        run: cd lv_micropython && source tools/ci.sh && ci_esp32_idf44_setup
+
+      - name: Build
+        run: cd lv_micropython && source tools/ci.sh && ci_esp32_build
+
+      - name: Create firmware package
+        run: |
+          cd lv_micropython
+          mkdir -p firmware
+          cp build/esp32/firmware.bin firmware/  # Asegúrate de que la ruta sea correcta
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: v1.0.0  # Cambia esto a la versión que desees
+          release_name: Release v1.0.0  # Cambia esto según sea necesario
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload firmware to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: lv_micropython/firmware/firmware.bin
+          asset_name: firmware.bin  # Cambia según lo que quieras que se llame
+          asset_content_type: application/octet-stream
