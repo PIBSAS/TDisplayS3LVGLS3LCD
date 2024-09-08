@@ -26,10 +26,11 @@ jobs:
       uses: actions/checkout@v3
       
     - name: Clonar LVGL Micropython
-      run: git clone https://github.com/lvgl/lv_micropython.git
-           cd lv_micropython
-           git submodule update --init --recursive lib/lv_bindings
-           cd
+      run: |
+       git clone https://github.com/lvgl/lv_micropython.git
+       cd lv_micropython
+       git submodule update --init --recursive lib/lv_bindings
+       cd
 
     - name: Clonar s3lcd
       run: git clone https://github.com/russhughes/s3lcd.git
