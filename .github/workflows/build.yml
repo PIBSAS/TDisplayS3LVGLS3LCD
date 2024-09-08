@@ -61,10 +61,12 @@ jobs:
     #    ./install.sh esp32s3
     #    cd
 # Reemplazado por:
-    - name: Set up ESP-IDF
-      uses: espressif/setup-esp-idf@v1
+    - name: ESP-IDF build
+      uses: espressif/esp-idf-ci-action@v1
       with:
-        idf_version: '5.2.2'
+        esp_idf_version: v5.2.2               # Versión de ESP-IDF que desees utilizar
+        target: esp32s3                       # Tipo de ESP32
+        path: 'lv_micropython/ports/esp32'   # Ruta al proyecto relativo a la raíz del repositorio
 
 
     - name: Copiar configuracion
