@@ -35,27 +35,22 @@ jobs:
       - name: Build
         run: cd lv_micropython && source tools/ci.sh && ci_esp32_build
 
-      - name: Create firmware package
+      - name: Mover binarios
         run: |
-          cd lv_micropython
-          mkdir -p firmware
-          cp build/esp32/firmware.bin firmware/  # Asegúrate de que la ruta sea correcta
+          mkdir -p ./artifacts
+          cp micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/micropython.bin ./artifacts/
+          cp micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/bootloader/bootloader.bin ./artifacts/
+          cp micropython/ports/esp32/build-ESP32_GENERIC_S3_N16R8/partition_table/partition-table.bin ./artifacts/
 
+      - name: Generate Tag
+        id: tag
+        run: echo "TAG_NAME=release-$(date +'%Y%m%d-%H%M')" >> $GITHUB_ENV
+        
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+        uses: marvinpinto/action-automatic-releases@latest
         with:
-          tag_name: v1.0.0  # Cambia esto a la versión que desees
-          release_name: Release v1.0.0  # Cambia esto según sea necesario
-          draft: false
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload firmware to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: lv_micropython/firmware/firmware.bin
-          asset_name: firmware.bin  # Cambia según lo que quieras que se llame
-          asset_content_type: application/octet-stream
+          automatic_release_tag: ${{ env.TAG_NAME }}  # Usa el nombre del tag generado
+          title: "Release for version ${{ env.TAG_NAME }}"
+          files: ./artifacts/*
