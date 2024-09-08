@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
+    - name: Clone lv_micropython repository
+      run: git clone https://github.com/lvgl/lv_micropython.git
     - name: Initialize lv_bindings submodule
       run: git submodule update --init --recursive lib/lv_bindings
     - name: Install packages
