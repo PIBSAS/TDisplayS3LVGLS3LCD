@@ -32,12 +32,6 @@ jobs:
        git submodule update --init --recursive lib/lv_bindings
        cd
 
-    - name: Agregar dependencia mdns
-      run: |
-        cd lv_micropython
-        idf.py add-dependency mdns
-        cd
-
     - name: Reemplazar esp_adc_cal en CMakeLists.txt
       run: |
        sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/main/CMakeLists.txt
@@ -56,22 +50,36 @@ jobs:
        sudo apt-get update
        sudo apt-get install -y build-essential git wget flex bison gperf pkg-config python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
 
-    - name: Clonar ESP-IDF
-      run: |
-        mkdir -p esp
-        cd esp
-        git clone -b v5.2.2 --recursive https://github.com/espressif/esp-idf.git
-        cd esp-idf/tools
-        python3 idf_tools.py install cmake
-        cd ..
-        ./install.sh esp32s3
-        cd
+    #- name: Clonar ESP-IDF
+    #  run: |
+    #    mkdir -p esp
+    #    cd esp
+    #    git clone -b v5.2.2 --recursive https://github.com/espressif/esp-idf.git
+    #    cd esp-idf/tools
+    #    python3 idf_tools.py install cmake
+    #    cd ..
+    #    ./install.sh esp32s3
+    #    cd
+# Reemplazado por:
+    - name: Set up ESP-IDF
+      uses: espressif/setup-esp-idf@v1
+      with:
+        idf_version: '5.2.2'
 
 
     - name: Copiar configuracion
       run: |
         cp -r ESP32_GENERIC_S3_N16R8 lv_micropython/ports/esp32/boards/
 
+    - name: Install Python dependencies
+      run: |
+        pip install -r lv_micropython/requirements.txt
+
+    - name: Add mdns dependency
+      run: |
+        cd lv_micropython
+        idf.py add-dependency mdns
+      
     - name: Compilar
       run: |
         source esp/esp-idf/export.sh
