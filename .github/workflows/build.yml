@@ -31,7 +31,13 @@ jobs:
        cd lv_micropython
        git submodule update --init --recursive lib/lv_bindings
        cd
-    
+
+    - name: Agregar dependencia mdns
+      run: |
+        cd lv_micropython
+        idf.py add-dependency mdns
+        cd
+
     - name: Reemplazar esp_adc_cal en CMakeLists.txt
       run: |
        sed -i 's/esp_adc_cal/esp_adc/g' lv_micropython/ports/esp32/main/CMakeLists.txt
