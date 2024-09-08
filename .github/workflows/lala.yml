@@ -27,16 +27,10 @@ jobs:
           cp -r ESP32_GENERIC_S3_N16R8 lv_micropython/ports/esp32/boards/
         
       - name: Install packages
-        run: cd lv_micropython && source tools/ci.sh && ci_esp32_idf44_setup
-
-      - name: Build for Custom Board
-        run: |
-          cd lv_micropython
-          source tools/ci.sh
-          make ${MAKEOPTS} -C ports/esp32 BOARD=ESP32_GENERIC_S3_N16R8
+        run: cd lv_micropython && source tools/ci.sh && ci_esp32_idf44_setup && make ${MAKEOPTS} -C ports/esp32 BOARD=ESP32_GENERIC_S3_N16R8
         
-      #- name: Build
-       # run: cd lv_micropython && source tools/ci.sh && ci_esp32_build
+      - name: Build
+        run: cd lv_micropython && source tools/ci.sh && ci_esp32_build
 
       - name: Mover binarios
         run: |
